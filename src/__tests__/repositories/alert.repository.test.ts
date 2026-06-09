@@ -1,4 +1,5 @@
-import { InMemoryAlertRepository, highestSeverity } from "../../repositories/alert.repository.js";
+import { InMemoryAlertRepository } from "../../repositories/alert.repository.js";
+import { highestSeverity } from "../../models/alert.model.js";
 import { makeAlert, makeEvent, makeAnomaly, hoursAgo } from "../fixtures.js";
 
 describe("InMemoryAlertRepository", () => {

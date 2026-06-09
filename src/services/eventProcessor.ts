@@ -1,10 +1,9 @@
-import { AlertSchema } from '../models/alert.model.js';
+import { AlertSchema, highestSeverity } from '../models/alert.model.js';
 import type { PermissionChangeEvent } from '../models/event.model.js';
 import logger from '../lib/logger.js';
 import type { IEventRepository } from '../repositories/event.repository.js';
 import type { IAnomalyRepository } from '../repositories/anomaly.repository.js';
 import type { IAlertRepository } from '../repositories/alert.repository.js';
-import { highestSeverity } from '../repositories/alert.repository.js';
 import type { AnomalyDetector } from './anomalyDetector.js';
 
 const log = logger.child({ component: 'EventProcessorService' });

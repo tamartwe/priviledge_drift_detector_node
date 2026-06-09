@@ -1,7 +1,25 @@
 import { z } from 'zod';
 import { randomUUID } from 'crypto';
 import { PermissionChangeEventSchema } from './event.model.js';
-import { AnomalySchema, AnomalySeveritySchema, AnomalyTypeSchema } from './anomaly.model.js';
+import {
+  AnomalySchema, AnomalySeveritySchema, AnomalyTypeSchema, type AnomalySeverity,
+} from './anomaly.model.js';
+
+/** Numeric rank used for severity comparisons throughout the application. */
+export const SEVERITY_RANK: Record<AnomalySeverity, number> = {
+  LOW: 1,
+  MEDIUM: 2,
+  HIGH: 3,
+  CRITICAL: 4,
+};
+
+/** Return the worst severity in a list; returns 'LOW' for an empty list. */
+export function highestSeverity(severities: AnomalySeverity[]): AnomalySeverity {
+  return severities.reduce<AnomalySeverity>(
+    (best, s) => (SEVERITY_RANK[s] > SEVERITY_RANK[best] ? s : best),
+    'LOW',
+  );
+}
 
 export const AlertSchema = z.object({
   alertId: z.string().uuid().default(() => randomUUID()),

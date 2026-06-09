@@ -1,12 +1,4 @@
-import type { Alert, AlertQuery } from '../models/alert.model.js';
-import type { AnomalySeverity } from '../models/anomaly.model.js';
-
-const SEVERITY_RANK: Record<AnomalySeverity, number> = {
-  LOW: 1,
-  MEDIUM: 2,
-  HIGH: 3,
-  CRITICAL: 4,
-};
+import { SEVERITY_RANK, type Alert, type AlertQuery } from '../models/alert.model.js';
 
 export interface IAlertRepository {
   save(alert: Alert): void;
@@ -65,12 +57,4 @@ export class InMemoryAlertRepository implements IAlertRepository {
   count(): number {
     return this.store.length;
   }
-}
-
-/** Derive the worst severity across a set of anomaly severities. */
-export function highestSeverity(severities: AnomalySeverity[]): AnomalySeverity {
-  return severities.reduce<AnomalySeverity>(
-    (best, s) => (SEVERITY_RANK[s] > SEVERITY_RANK[best] ? s : best),
-    'LOW',
-  );
 }
