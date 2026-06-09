@@ -182,24 +182,23 @@ describe("AlertController", () => {
 
   // ── EventController integration: process() creates an alert ─────────────────
 
-  describe("EventController integration — alerts are created via process()", () => {
+  describe("EventProcessorService integration — alerts are created via process()", () => {
     it("creates one alert per flagged event regardless of how many anomalies fire", async () => {
-      const { EventController } = await import("../../controllers/event.controller.js");
+      const { EventProcessorService } = await import("../../services/eventProcessor.js");
       const { InMemoryEventRepository } = await import("../../repositories/event.repository.js");
       const { InMemoryAnomalyRepository } = await import("../../repositories/anomaly.repository.js");
-      const { EventQueue } = await import("../../services/eventQueue.js");
       const { AnomalyDetector } = await import("../../services/anomalyDetector.js");
 
-      const eventRepo = new InMemoryEventRepository();
-      const anomalyRepo = new InMemoryAnomalyRepository();
       const alertRepo = new InMemoryAlertRepository();
-      const queue = new EventQueue();
-      const detector = new AnomalyDetector();
-      const eventController = new EventController(eventRepo, anomalyRepo, alertRepo, queue, detector);
-      queue.register(eventController.process);
+      const processor = new EventProcessorService(
+        new InMemoryEventRepository(),
+        new InMemoryAnomalyRepository(),
+        alertRepo,
+        new AnomalyDetector(),
+      );
 
       // Self-escalation to superadmin fires multiple anomalies but ONE alert
-      await eventController.process(
+      await processor.process(
         makeEvent({
           actorId: "eve",
           targetUserId: "eve",
@@ -217,22 +216,20 @@ describe("AlertController", () => {
     });
 
     it("does NOT create an alert for a clean event", async () => {
-      const { EventController } = await import("../../controllers/event.controller.js");
+      const { EventProcessorService } = await import("../../services/eventProcessor.js");
       const { InMemoryEventRepository } = await import("../../repositories/event.repository.js");
       const { InMemoryAnomalyRepository } = await import("../../repositories/anomaly.repository.js");
-      const { EventQueue } = await import("../../services/eventQueue.js");
       const { AnomalyDetector } = await import("../../services/anomalyDetector.js");
 
       const alertRepo = new InMemoryAlertRepository();
-      const eventController = new EventController(
+      const processor = new EventProcessorService(
         new InMemoryEventRepository(),
         new InMemoryAnomalyRepository(),
         alertRepo,
-        new EventQueue(),
-        new AnomalyDetector()
+        new AnomalyDetector(),
       );
 
-      await eventController.process(
+      await processor.process(
         makeEvent({
           previousPermission: "read",
           newPermission: "write",

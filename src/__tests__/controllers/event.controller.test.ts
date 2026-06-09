@@ -1,19 +1,11 @@
 import { EventController } from "../../controllers/event.controller.js";
-import { InMemoryEventRepository } from "../../repositories/event.repository.js";
-import { InMemoryAnomalyRepository } from "../../repositories/anomaly.repository.js";
-import { InMemoryAlertRepository } from "../../repositories/alert.repository.js";
 import { EventQueue } from "../../services/eventQueue.js";
-import { AnomalyDetector } from "../../services/anomalyDetector.js";
 import { mockRequest, mockResponse } from "./http-mocks.js";
 
 function makeController() {
-  const eventRepo = new InMemoryEventRepository();
-  const anomalyRepo = new InMemoryAnomalyRepository();
-  const alertRepo = new InMemoryAlertRepository();
   const queue = new EventQueue();
-  const detector = new AnomalyDetector();
-  const controller = new EventController(eventRepo, anomalyRepo, alertRepo, queue, detector);
-  return { controller, eventRepo, anomalyRepo, alertRepo, queue, detector };
+  const controller = new EventController(queue);
+  return { controller, queue };
 }
 
 const validBody = {
@@ -152,65 +144,6 @@ describe("EventController", () => {
       controller.submitBatch(req, res);
 
       expect(res._status).toBe(400);
-    });
-  });
-
-  // ── process (queue processor callback) ─────────────────────────────────────
-
-  describe("process", () => {
-    it("saves the event to the event repository", async () => {
-      const { controller, eventRepo, queue } = makeController();
-      queue.register(controller.process);
-
-      const req = mockRequest({ body: validBody });
-      const res = mockResponse();
-      controller.submit(req, res);
-
-      await new Promise<void>((r) => setTimeout(r, 20));
-
-      expect(eventRepo.count()).toBe(1);
-    });
-
-    it("saves detected anomalies to the anomaly repository", async () => {
-      const { controller, anomalyRepo, queue } = makeController();
-      queue.register(controller.process);
-
-      // Self-escalation to superadmin — guaranteed to produce anomalies
-      const req = mockRequest({
-        body: {
-          ...validBody,
-          actorId: "eve",
-          targetUserId: "eve",
-          previousPermission: "read",
-          newPermission: "superadmin",
-        },
-      });
-      const res = mockResponse();
-      controller.submit(req, res);
-
-      await new Promise<void>((r) => setTimeout(r, 20));
-
-      expect(anomalyRepo.count()).toBeGreaterThan(0);
-    });
-
-    it("does not write to the anomaly repo when no anomalies are detected", async () => {
-      const { controller, anomalyRepo, queue } = makeController();
-      queue.register(controller.process);
-
-      const req = mockRequest({
-        body: {
-          ...validBody,
-          timestamp: new Date(
-            new Date().setUTCHours(10, 0, 0, 0)
-          ).toISOString(),
-        },
-      });
-      const res = mockResponse();
-      controller.submit(req, res);
-
-      await new Promise<void>((r) => setTimeout(r, 20));
-
-      expect(anomalyRepo.count()).toBe(0);
     });
   });
 });

@@ -3,6 +3,7 @@ import { InMemoryAnomalyRepository } from './repositories/anomaly.repository.js'
 import { InMemoryAlertRepository } from './repositories/alert.repository.js';
 import { EventQueue } from './services/eventQueue.js';
 import { AnomalyDetector } from './services/anomalyDetector.js';
+import { EventProcessorService } from './services/eventProcessor.js';
 import { loadEventsFromFile } from './services/fileLoader.js';
 import { EventController } from './controllers/event.controller.js';
 import { AnomalyController } from './controllers/anomaly.controller.js';
@@ -24,14 +25,15 @@ const alertRepo = new InMemoryAlertRepository();
 // ─── Services ─────────────────────────────────────────────────────────────────
 const queue = new EventQueue();
 const detector = new AnomalyDetector();
-
-// ─── Controllers ──────────────────────────────────────────────────────────────
-const eventController = new EventController(eventRepo, anomalyRepo, alertRepo, queue, detector);
-const anomalyController = new AnomalyController(anomalyRepo, eventRepo, queue);
-const alertController = new AlertController(alertRepo);
+const processor = new EventProcessorService(eventRepo, anomalyRepo, alertRepo, detector);
 
 // ─── Wire queue processor ──────────────────────────────────────────────────────
-queue.register(eventController.process);
+queue.register(processor.process);
+
+// ─── Controllers ──────────────────────────────────────────────────────────────
+const eventController = new EventController(queue);
+const anomalyController = new AnomalyController(anomalyRepo, eventRepo, queue);
+const alertController = new AlertController(alertRepo);
 
 // ─── HTTP server ───────────────────────────────────────────────────────────────
 const app = createServer(eventController, anomalyController, alertController);

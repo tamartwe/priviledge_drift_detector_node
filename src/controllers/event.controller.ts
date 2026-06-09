@@ -1,25 +1,16 @@
 import { z, ZodError } from 'zod';
 import type { Request, Response } from 'express';
 import { CreateEventSchema } from '../models/event.model.js';
-import { AlertSchema } from '../models/alert.model.js';
-import logger from '../lib/logger.js';
-import type { IEventRepository } from '../repositories/event.repository.js';
-import type { IAnomalyRepository } from '../repositories/anomaly.repository.js';
-import type { IAlertRepository } from '../repositories/alert.repository.js';
-import { highestSeverity } from '../repositories/alert.repository.js';
 import type { EventQueue } from '../services/eventQueue.js';
-import type { AnomalyDetector } from '../services/anomalyDetector.js';
 
-const log = logger.child({ component: 'EventController' });
-
+/**
+ * HTTP-only controller: validates inbound event payloads and enqueues them.
+ * All post-dequeue processing (detection, persistence, alert assembly) lives
+ * in EventProcessorService, which is registered separately as the queue
+ * processor callback.
+ */
 export class EventController {
-  constructor(
-    private readonly eventRepo: IEventRepository,
-    private readonly anomalyRepo: IAnomalyRepository,
-    private readonly alertRepo: IAlertRepository,
-    private readonly queue: EventQueue,
-    private readonly detector: AnomalyDetector,
-  ) {}
+  constructor(private readonly queue: EventQueue) {}
 
   /** POST /events */
   submit = (req: Request, res: Response): void => {
@@ -64,51 +55,6 @@ export class EventController {
       count: events.length,
       queueSize: this.queue.size,
     });
-  };
-
-  /**
-   * Queue processor — runs the detector, persists results, builds an Alert
-   * when any anomalies fire. Called by EventQueue drain loop, not by Express.
-   */
-  process = async (event: Parameters<EventQueue['enqueue']>[0]): Promise<void> => {
-    this.eventRepo.save(event);
-
-    const anomalies = this.detector.analyze(event);
-
-    if (anomalies.length === 0) {
-      log.info(
-        {
-          eventId: event.eventId,
-          actorId: event.actorId,
-          previousPermission: event.previousPermission,
-          newPermission: event.newPermission,
-        },
-        'Event processed — no anomalies',
-      );
-      return;
-    }
-
-    this.anomalyRepo.saveMany(anomalies);
-
-    const alert = AlertSchema.parse({
-      event,
-      anomalies,
-      reasons: anomalies.map((a) => a.description),
-      highestSeverity: highestSeverity(anomalies.map((a) => a.severity)),
-    });
-    this.alertRepo.save(alert);
-
-    log.warn(
-      {
-        alertId: alert.alertId,
-        eventId: event.eventId,
-        actorId: event.actorId,
-        highestSeverity: alert.highestSeverity,
-        anomalyCount: anomalies.length,
-        types: anomalies.map((a) => a.type),
-      },
-      'Alert raised',
-    );
   };
 }
 
