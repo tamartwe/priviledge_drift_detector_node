@@ -1,0 +1,74 @@
+[
+  {
+    "actorId": "alice",
+    "targetUserId": "bob",
+    "resourceId": "billing",
+    "appId": "admin-portal",
+    "previousPermission": "read",
+    "newPermission": "write"
+  },
+  {
+    "actorId": "eve",
+    "targetUserId": "eve",
+    "resourceId": "prod-db",
+    "appId": "rogue-script",
+    "previousPermission": "read",
+    "newPermission": "admin",
+    "timestamp": "2026-06-09T02:00:00Z"
+  },
+  {
+    "actorId": "charlie",
+    "targetUserId": "diana",
+    "resourceId": "vpn",
+    "appId": "iam-service",
+    "previousPermission": "none",
+    "newPermission": "superadmin"
+  },
+  {
+    "actorId": "charlie",
+    "targetUserId": "ed",
+    "resourceId": "vpn",
+    "appId": "iam-service",
+    "previousPermission": "read",
+    "newPermission": "write"
+  },
+  {
+    "actorId": "charlie",
+    "targetUserId": "frank",
+    "resourceId": "vpn",
+    "appId": "iam-service",
+    "previousPermission": "read",
+    "newPermission": "write"
+  },
+  {
+    "actorId": "charlie",
+    "targetUserId": "grace",
+    "resourceId": "vpn",
+    "appId": "iam-service",
+    "previousPermission": "read",
+    "newPermission": "write"
+  },
+  {
+    "actorId": "charlie",
+    "targetUserId": "heidi",
+    "resourceId": "vpn",
+    "appId": "iam-service",
+    "previousPermission": "read",
+    "newPermission": "write"
+  },
+  {
+    "actorId": "charlie",
+    "targetUserId": "ivan",
+    "resourceId": "vpn",
+    "appId": "iam-service",
+    "previousPermission": "read",
+    "newPermission": "write"
+  },
+  {
+    "actorId": "bad-field",
+    "targetUserId": "nobody",
+    "resourceId": "x",
+    "previousPermission": "INVALID_LEVEL",
+    "newPermission": "write"
+  }
+]
