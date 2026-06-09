@@ -15,6 +15,24 @@ const WORK_HOUR_START_UTC = 8;
 const WORK_HOUR_END_UTC = 20;
 
 // ─── Per-actor sliding window state ───────────────────────────────────────────
+//
+// Windows are keyed by actorId (the account *making* changes), not targetUserId
+// (the account *receiving* changes). This is an intentional design choice:
+//
+//   Actor-keyed  → detects a compromised/abusive admin: one account rapidly
+//                  escalating many others (insider threat, credential breach,
+//                  runaway automation). This is the primary concern for a
+//                  privilege-change monitoring system.
+//
+//   Target-keyed → would detect privilege cycling on a specific user: Bob's
+//                  permissions being changed repeatedly, possibly by different
+//                  actors. That pattern is partially covered by BLAST_RADIUS
+//                  (which counts distinct targetUserIds per actor burst window).
+//
+// If the requirement is interpreted as "flag the target user who experiences
+// too many changes", swap the Map key to targetUserId and update the rule
+// descriptions. Both readings of "same user has >5 changes" are defensible;
+// actor-keyed was chosen because it maps more directly to abuse-of-privilege.
 interface ActorWindow {
   burstEvents: PermissionChangeEvent[]; // 5-min window for burst / blast-radius
   dailyEvents: PermissionChangeEvent[]; // 24-h window for excessive-changes rule

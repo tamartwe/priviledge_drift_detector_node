@@ -88,8 +88,8 @@ POST /events  →  EventQueue  →  AnomalyDetector  →  AlertRepository
 ## Getting started
 
 ```bash
-npm install
-npm run dev                          # start with ts-node
+npm install   # .npmrc sets legacy-peer-deps automatically — no extra flags needed
+npm run dev   # start with ts-node
 PORT=3001 npm run dev                # custom port
 EVENTS_FILE=./sample-events.json npm run dev   # seed from JSON file on startup
 ```

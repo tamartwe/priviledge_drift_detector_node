@@ -3,6 +3,8 @@ import type { Request, Response } from 'express';
 import { CreateEventSchema } from '../models/event.model.js';
 import type { EventQueue } from '../services/eventQueue.js';
 
+const BatchSchema = z.array(CreateEventSchema).min(1).max(1000);
+
 /**
  * HTTP-only controller: validates inbound event payloads and enqueues them.
  * All post-dequeue processing (detection, persistence, alert assembly) lives
@@ -36,7 +38,6 @@ export class EventController {
 
   /** POST /events/batch — accepts an array of events, validates each independently */
   submitBatch = (req: Request, res: Response): void => {
-    const BatchSchema = z.array(CreateEventSchema).min(1).max(1000);
     const parsed = BatchSchema.safeParse(req.body);
 
     if (!parsed.success) {

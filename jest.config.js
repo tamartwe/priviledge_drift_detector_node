@@ -1,6 +1,7 @@
 /** @type {import('jest').Config} */
 module.exports = {
   testEnvironment: "node",
+  setupFiles: ["<rootDir>/src/__tests__/setup.ts"],
   // Strip .js extensions so ts-jest resolves the actual .ts source files.
   moduleNameMapper: {
     "^(\\.{1,2}/.+)\\.js$": "$1",
